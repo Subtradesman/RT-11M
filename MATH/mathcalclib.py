@@ -23,7 +23,8 @@ class calculate:
        
        """
        # Complex impedance
-       z_c = 1 / (1j * 2 * np.pi * frequency * capacitance)
+       z_c = 1 / (1j * 2 * np.pi * frequency)
+       z_c = z_c/capacitance
        
        # Complex line impedance after element connection 
        z_c_out = z_source + z_c
@@ -31,7 +32,7 @@ class calculate:
        # Reflection coefficent 
        gamma_c = (z_c_out - z_source) / (z_c_out + z_source)
        
-       return z_c, z_c_out, gamma_c
+       return z_c_out
 
     def ind_ser(z_source, frequency, inductance):
    
@@ -52,7 +53,7 @@ class calculate:
        # Reflection coefficent 
        gamma_i = (z_i_out - z_source) / (z_i_out + z_source)
        
-       return z_i, z_i_out, gamma_i
+       return z_i_out
 
     def res_ser(z_source, resistance):
        """
@@ -71,7 +72,7 @@ class calculate:
        # Reflection coefficent 
        gamma_r = (z_r_out - z_source) / (z_r_out + z_source)
        
-       return z_r, z_r_out, gamma_r
+       return z_r_out
 
     def cap_par(z_source, frequency, capacitance): 
    
