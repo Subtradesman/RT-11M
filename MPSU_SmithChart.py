@@ -9,20 +9,29 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Button
 from skrf.plotting import smith
+from ElementViewer import* 
+from GUI.Elements.SerCap import*
 
 #Это основной файл. Он инициализирует Графический интерфейс и его взаимодействие с schematic. 
-
+global ax
 # окно Tkinter
 root = tk.Tk()
 root.title("Калькулятор диаграммы Смита")
-root.geometry('800x600')
+root.geometry('800x700')
 root.option_add("*tearOff", FALSE)
+
 
 # параметры
 frequencies = np.linspace(1e6, 1e9, 500)  # частоты от 1 мГц до 1 ГГц
 z0 = 50  # номинальный импеданс
 inductance = 1e-9   # начальная индуктивность (гн)
 capacitance = 1e-12  # начальная ёмкость (ф)
+
+
+def on_closing():
+    exit()
+
+
 
 # функция для вычисления импедансов
 def calculateImpedance(inductance, capacitance, frequencies):
@@ -31,8 +40,8 @@ def calculateImpedance(inductance, capacitance, frequencies):
     zC = 1 / (1j * omega * capacitance)  # ёмкостное сопротивление
     return zL + zC
 
-# обновление диаграммы Смита
-def updateSmithChart(ax, schema:schm.schematic,frequency):
+
+def updateSmithChart_tr(schema:schm.schematic,frequency):
     ax.clear()    # очистить ось
     smith(ax=ax)  # нарисовать диаграмму Смита
 
@@ -44,6 +53,24 @@ def updateSmithChart(ax, schema:schm.schematic,frequency):
     ax.plot(gamma.real, gamma.imag, color='red', label=f"L = {inductance * 1e9:.2f} nH, C = {capacitance * 1e12:.2f} pF")
     ax.legend()
     ax.set_title("Диаграмма Смита", fontsize=16)
+
+
+# обновление диаграммы Смита
+def updateSmithChart(ax, schema:schm.schematic,frequency):
+    ax.clear()    # очистить ось
+    smith(ax=ax)  # нарисовать диаграмму Смита
+
+    # вычисление импедансов
+    impedances = schema.getImpedanceCurve(frequency)
+    gamma = (impedances - z0) / (impedances + z0)  # коэффициенты отражения
+
+    print(impedances)
+
+    # построение линии на диаграмме
+    ax.plot(gamma.real, gamma.imag, color='red', label=f"L = {inductance * 1e9:.2f} nH, C = {capacitance * 1e12:.2f} pF")
+    ax.legend()
+    ax.set_title("Диаграмма Смита", fontsize=16)
+    canvas.draw()
 
 def show_message():
     label["text"] = entry.get()     # получаем введенный текст
@@ -146,7 +173,7 @@ schem = schm.schematic(50,50)
 schem.addElement(ser_ind)
 schem.addElement(ser_res)
 
-updateSmithChart(ax, schem,1e9)
+# updateSmithChart_tr(schema=schem,frequency=1e9)
 
 
 
@@ -179,13 +206,31 @@ canvas = FigureCanvasTkAgg(fig, master=root)
 canvas.draw()
 canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
 
-elem_viewer = Canvas(bg="white")
+elem_viewer = ElementViewer(root,ax=ax,UpdateSmithChart=updateSmithChart)
 elem_viewer.pack(anchor=S,fill=X ,expand=1)
 
-elem_viewer.create_line(10, 10, 200, 50,width=3)
+# elem_viewer.addSchmElement(type="SerCap",val=10)
 
+# capSer = SerCap(width = 100,height=100,index=0,master=root)
+# elem_viewer.addElement(10,10,100,100,capSer)
+# capSer1 = SerRes(width = 100,height=100,index=1,master=root)
+# elem_viewer.addElement(110,10,100,100,capSer1)
+
+# IndSer = SerInd(width = 100,height=100,index=1,master=root)
+# elem_viewer.addElement(210,10,100,100,IndSer)
+
+# par_res = ParRes(width = 100,height=100*3/2,index=1,master=root)
+# elem_viewer.addElement(310,10,100,100*3/2,par_res)
+
+# par_cap = ParCap(width = 100,height=100*3/2,index=1,master=root)
+# elem_viewer.addElement(410,10,100,100*3/2,par_cap)
+
+
+# par_ind = ParInd(width = 100,height=100*3/2,index=1,master=root)
+# elem_viewer.addElement(510,10,100,100*3/2,par_ind)
 
 # цикл событий Tkinter
+root.protocol("WM_DELETE_WINDOW", on_closing)
 root.mainloop()
 
 

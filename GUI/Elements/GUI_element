@@ -1,8 +1,0 @@
-from tkinter import*
-
-
-class GUI_element(Canvas):
-    
-
-
-
